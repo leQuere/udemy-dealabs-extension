@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Udemy Dealabs Auto</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎓 Udemy Dealabs Auto</h1>
+    
+    <div class="status-section">
+      <div id="statusMessage" class="status-message">
+        En attente...
+      </div>
+    </div>
+    
+    <div class="action-section">
+      <button id="startBtn" class="btn btn-primary">
+        🚀 Démarrer l'automatisation
+      </button>
+      <button id="stopBtn" class="btn btn-danger" style="display:none;">
+        ⏹ Arrêter
+      </button>
+    </div>
+    
+    <div class="stats-section">
+      <h2>📊 Statistiques</h2>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-label">Total trouvées</div>
+          <div class="stat-value" id="statTotal">0</div>
+        </div>
+        <div class="stat-item success">
+          <div class="stat-label">Achetées</div>
+          <div class="stat-value" id="statAchetees">0</div>
+        </div>
+        <div class="stat-item info">
+          <div class="stat-label">Déjà achetées</div>
+          <div class="stat-value" id="statDeja">0</div>
+        </div>
+        <div class="stat-item warning">
+          <div class="stat-label">Payantes</div>
+          <div class="stat-value" id="statPayantes">0</div>
+        </div>
+        <div class="stat-item error">
+          <div class="stat-label">Erreurs</div>
+          <div class="stat-value" id="statErreurs">0</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="progress-section">
+      <h2>📝 Progression</h2>
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+      <div id="progressText" class="progress-text">0%</div>
+    </div>
+    
+    <div class="log-section">
+      <h2>📋 Journal</h2>
+      <div id="logContainer" class="log-container">
+        <div class="log-entry info">Prêt à démarrer...</div>
+      </div>
+    </div>
+    
+    <div class="settings-section">
+      <h2>⚙️ Options</h2>
+      <label class="checkbox-label">
+        <input type="checkbox" id="autoCheckout" checked>
+        Valider automatiquement le panier
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="delayBetween">
+        Délai entre chaque cours (2s)
+      </label>
+    </div>
+    
+    <div class="footer">
+      <small>Extension pour automatiser Dealabs → Udemy</small>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html>

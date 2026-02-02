@@ -1,0 +1,199 @@
+// État de l'extension
+let isRunning = false;
+let stats = {
+  total: 0,
+  achetees: 0,
+  deja: 0,
+  payantes: 0,
+  erreurs: 0,
+  processed: 0
+};
+
+// Éléments du DOM
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const statusMessage = document.getElementById('statusMessage');
+const logContainer = document.getElementById('logContainer');
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', () => {
+  loadStats();
+  checkCurrentPage();
+  
+  startBtn.addEventListener('click', startAutomation);
+  stopBtn.addEventListener('click', stopAutomation);
+  
+  // Écouter les messages du background
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.type === 'updateStats') {
+      updateStats(message.stats);
+    } else if (message.type === 'log') {
+      addLog(message.text, message.level);
+    } else if (message.type === 'status') {
+      updateStatus(message.text, message.running);
+    }
+  });
+});
+
+// Vérifier si on est sur une page Dealabs
+async function checkCurrentPage() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  
+  if (tab && tab.url && tab.url.includes('dealabs.com')) {
+    statusMessage.textContent = '✅ Page Dealabs détectée - Prêt à démarrer';
+    statusMessage.style.background = '#c6f6d5';
+    statusMessage.style.color = '#22543d';
+    startBtn.disabled = false;
+  } else {
+    statusMessage.textContent = '⚠️ Ouvrez une page Dealabs pour commencer';
+    statusMessage.style.background = '#fef5e7';
+    statusMessage.style.color = '#744210';
+    startBtn.disabled = true;
+  }
+}
+
+// Démarrer l'automatisation
+async function startAutomation() {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  
+  if (!tab || !tab.url || !tab.url.includes('dealabs.com')) {
+    addLog('❌ Veuillez ouvrir une page Dealabs', 'error');
+    return;
+  }
+  
+  isRunning = true;
+  startBtn.style.display = 'none';
+  stopBtn.style.display = 'block';
+  
+  // Réinitialiser les stats
+  stats = { total: 0, achetees: 0, deja: 0, payantes: 0, erreurs: 0, processed: 0 };
+  updateStats(stats);
+  
+  statusMessage.textContent = '🚀 Automatisation en cours...';
+  statusMessage.classList.add('running');
+  
+  addLog('🚀 Démarrage de l\'automatisation...', 'info');
+  
+  console.log('Envoi du message startAutomation au background...');
+  
+  // Envoyer le message au background pour démarrer
+  chrome.runtime.sendMessage({
+    type: 'startAutomation',
+    tabId: tab.id,
+    options: {
+      autoCheckout: document.getElementById('autoCheckout').checked,
+      delay: document.getElementById('delayBetween').checked
+    }
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Erreur lors de l\'envoi du message:', chrome.runtime.lastError);
+      addLog('❌ Erreur de communication avec le background', 'error');
+      stopAutomation();
+    } else {
+      console.log('Message envoyé avec succès, réponse:', response);
+    }
+  });
+}
+
+// Arrêter l'automatisation
+function stopAutomation() {
+  isRunning = false;
+  startBtn.style.display = 'block';
+  stopBtn.style.display = 'none';
+  
+  statusMessage.textContent = '⏹ Automatisation arrêtée';
+  statusMessage.classList.remove('running');
+  
+  addLog('⏹ Arrêt demandé', 'warning');
+  
+  chrome.runtime.sendMessage({ type: 'stopAutomation' });
+}
+
+// Mettre à jour les statistiques
+function updateStats(newStats) {
+  // Additionner les nouvelles valeurs aux stats existantes (sauf pour 'total' et 'processed' qui sont absolus)
+  if (newStats.total !== undefined) {
+    stats.total = newStats.total;
+  }
+  if (newStats.processed !== undefined) {
+    stats.processed = newStats.processed;
+  }
+  if (newStats.achetees !== undefined) {
+    stats.achetees += newStats.achetees;
+  }
+  if (newStats.deja !== undefined) {
+    stats.deja += newStats.deja;
+  }
+  if (newStats.payantes !== undefined) {
+    stats.payantes += newStats.payantes;
+  }
+  if (newStats.erreurs !== undefined) {
+    stats.erreurs += newStats.erreurs;
+  }
+  
+  document.getElementById('statTotal').textContent = stats.total;
+  document.getElementById('statAchetees').textContent = stats.achetees;
+  document.getElementById('statDeja').textContent = stats.deja;
+  document.getElementById('statPayantes').textContent = stats.payantes;
+  document.getElementById('statErreurs').textContent = stats.erreurs;
+  
+  // Mettre à jour la barre de progression
+  if (stats.total > 0) {
+    const progress = (stats.processed / stats.total) * 100;
+    document.getElementById('progressFill').style.width = progress + '%';
+    document.getElementById('progressText').textContent = Math.round(progress) + '%';
+  }
+  
+  saveStats();
+}
+
+// Ajouter une entrée au journal
+function addLog(text, level = 'info') {
+  const entry = document.createElement('div');
+  entry.className = `log-entry ${level}`;
+  entry.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  
+  logContainer.appendChild(entry);
+  logContainer.scrollTop = logContainer.scrollHeight;
+  
+  // Limiter à 100 entrées
+  while (logContainer.children.length > 100) {
+    logContainer.removeChild(logContainer.firstChild);
+  }
+}
+
+// Mettre à jour le statut
+function updateStatus(text, running) {
+  statusMessage.textContent = text;
+  if (running) {
+    statusMessage.classList.add('running');
+  } else {
+    statusMessage.classList.remove('running');
+  }
+}
+
+// Sauvegarder les stats
+function saveStats() {
+  chrome.storage.local.set({ stats });
+}
+
+// Charger les stats
+function loadStats() {
+  chrome.storage.local.get(['stats'], (result) => {
+    if (result.stats) {
+      stats = { ...result.stats };
+      // Afficher les stats sans les additionner
+      document.getElementById('statTotal').textContent = stats.total || 0;
+      document.getElementById('statAchetees').textContent = stats.achetees || 0;
+      document.getElementById('statDeja').textContent = stats.deja || 0;
+      document.getElementById('statPayantes').textContent = stats.payantes || 0;
+      document.getElementById('statErreurs').textContent = stats.erreurs || 0;
+      
+      if (stats.total > 0) {
+        const progress = ((stats.processed || 0) / stats.total) * 100;
+        document.getElementById('progressFill').style.width = progress + '%';
+        document.getElementById('progressText').textContent = Math.round(progress) + '%';
+      }
+    }
+  });
+}
