@@ -2,6 +2,15 @@
 
 Extension Chrome pour automatiser l'ajout de formations Udemy gratuites depuis les pages Dealabs.
 
+Embed a Sponsor button
+<iframe src="https://github.com/sponsors/leQuere/button" title="Sponsor leQuere" height="32" width="114" style="border: 0; border-radius: 6px;"></iframe>
+Preview
+
+Embed a Sponsor card
+<iframe src="https://github.com/sponsors/leQuere/card" title="Sponsor leQuere" height="225" width="600" style="border: 0;"></iframe>
+Preview
+
+
 ## 🎯 Fonctionnalités
 
 - ✅ **Parse automatiquement** les pages Dealabs pour trouver tous les liens de formation
