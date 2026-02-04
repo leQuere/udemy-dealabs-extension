@@ -39,9 +39,9 @@ const logContainer = document.getElementById('logContainer');
  * - Vérifie la page active
  * - Configure les écouteurs d'événements
  */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   loadStats();
-  checkCurrentPage();
+  await checkCurrentPage();
   
   startBtn.addEventListener('click', startAutomation);
   stopBtn.addEventListener('click', stopAutomation);
@@ -56,6 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
       updateStatus(message.text, message.running);
     }
   });
+  
+  // Lancer automatiquement si sur une page Dealabs
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab && tab.url && tab.url.includes('dealabs.com/bons-plans/')) {
+    setTimeout(() => {
+      startAutomation();
+    }, 500);
+  }
 });
 
 // === FONCTIONS ===
