@@ -19,6 +19,7 @@ console.log('Dealabs content script chargé');
  * - log: Ajouter une entrée au panneau de logs
  * - updateStats: Mettre à jour les statistiques affichées
  * - automationFinished: Notifier la fin de l'automatisation
+ * - launchFromIcon: Lancer l'automatisation via le clic sur l'icône
  */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message reçu dans dealabs-content:', message);
@@ -34,6 +35,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   } else if (message.type === 'automationFinished') {
     // L'automatisation est terminée
     onAutomationFinished();
+  } else if (message.type === 'launchFromIcon') {
+    // Lancer l'automatisation depuis l'icône de l'extension
+    launchAutomationFromIcon();
   }
   // Pas de return true car on ne répond pas de manière asynchrone
 });
@@ -414,6 +418,39 @@ function onAutomationFinished() {
   }
   
   addLogToPanel('🎉 Automatisation terminée !', 'success');
+}
+
+// Fonction pour lancer l'automatisation depuis l'icône de l'extension
+async function launchAutomationFromIcon() {
+  console.log('🚀 Lancement depuis l\'icône de l\'extension');
+  
+  // Afficher le panneau de suivi
+  showStatsPanel();
+  
+  try {
+    // Récupérer l'ID de l'onglet actuel
+    const tabs = await chrome.runtime.sendMessage({ type: 'getCurrentTab' });
+    
+    // Démarrer l'automatisation avec les options par défaut
+    const response = await chrome.runtime.sendMessage({
+      type: 'startAutomation',
+      tabId: tabs ? tabs.id : null,
+      options: {
+        closeAfter: true,
+        skipPaid: true,
+        skipEnrolled: true
+      }
+    });
+    
+    if (response && response.success) {
+      addLogToPanel('🚀 Automatisation démarrée', 'success');
+    } else {
+      throw new Error('Échec du lancement');
+    }
+  } catch (error) {
+    console.error('Erreur:', error);
+    addLogToPanel('❌ Erreur: ' + error.message, 'error');
+  }
 }
 
 // === INITIALISATION ===

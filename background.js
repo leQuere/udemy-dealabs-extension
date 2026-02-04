@@ -8,6 +8,32 @@
  * - Gestion des statistiques et des logs
  */
 
+// === GESTIONNAIRE DE CLIC SUR L'ICÔNE ===
+
+/**
+ * Gère le clic sur l'icône de l'extension
+ * Lance l'automatisation directement sur la page Dealabs
+ */
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log('Clic sur l\'icône de l\'extension, onglet:', tab.id);
+  
+  // Vérifier si on est sur une page Dealabs
+  if (!tab.url || !tab.url.includes('dealabs.com/bons-plans/')) {
+    console.log('Pas sur une page Dealabs /bons-plans/');
+    return;
+  }
+  
+  // Envoyer un message au content script pour afficher le panneau et lancer l'automatisation
+  try {
+    await chrome.tabs.sendMessage(tab.id, { 
+      type: 'launchFromIcon'
+    });
+    console.log('Message launchFromIcon envoyé');
+  } catch (error) {
+    console.error('Erreur lors de l\'envoi du message:', error);
+  }
+});
+
 // === VARIABLES GLOBALES ===
 
 /** Indique si l'automatisation est en cours d'exécution */
