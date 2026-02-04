@@ -1,5 +1,19 @@
-// État de l'extension
+/**
+ * Popup UI - Extension Udemy Auto Dealabs
+ * 
+ * Gère l'interface utilisateur de la popup de l'extension:
+ * - Boutons de démarrage/arrêt
+ * - Affichage des statistiques en temps réel
+ * - Journal des logs
+ * - Vérification de la page active
+ */
+
+// === VARIABLES D'ÉTAT ===
+
+/** Indique si l'automatisation est en cours */
 let isRunning = false;
+
+/** Statistiques de progression */
 let stats = {
   total: 0,
   achetees: 0,
@@ -9,13 +23,22 @@ let stats = {
   processed: 0
 };
 
-// Éléments du DOM
+// === ÉLÉMENTS DOM ===
+
+/** Références aux éléments de l'interface */
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
 const statusMessage = document.getElementById('statusMessage');
 const logContainer = document.getElementById('logContainer');
 
-// Initialisation
+// === INITIALISATION ===
+
+/**
+ * Initialise la popup au chargement
+ * - Charge les statistiques sauvegardées
+ * - Vérifie la page active
+ * - Configure les écouteurs d'événements
+ */
 document.addEventListener('DOMContentLoaded', () => {
   loadStats();
   checkCurrentPage();
@@ -35,7 +58,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// Vérifier si on est sur une page Dealabs
+// === FONCTIONS ===
+
+/**
+ * Vérifie si l'onglet actif est une page Dealabs
+ * Active ou désactive le bouton de démarrage en conséquence
+ */
 async function checkCurrentPage() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   
@@ -47,7 +75,10 @@ async function checkCurrentPage() {
   } else {
     statusMessage.textContent = '⚠️ Ouvrez une page Dealabs pour commencer';
     statusMessage.style.background = '#fef5e7';
-    statusMessage.style.color = '#744210';
+ **
+ * Démarre l'automatisation depuis la popup
+ * Envoie un message au background script avec les options choisies
+ */r = '#744210';
     startBtn.disabled = true;
   }
 }
@@ -92,7 +123,10 @@ async function startAutomation() {
     } else {
       console.log('Message envoyé avec succès, réponse:', response);
     }
-  });
+ **
+ * Arrête l'automatisation en cours
+ * Remet l'interface à son état initial
+ */
 }
 
 // Arrêter l'automatisation
@@ -103,7 +137,10 @@ function stopAutomation() {
   
   statusMessage.textContent = '⏹ Automatisation arrêtée';
   statusMessage.classList.remove('running');
-  
+ **
+ * Met à jour l'affichage des statistiques dans la popup
+ * @param {Object} newStats - Nouvelles valeurs de statistiques
+ */
   addLog('⏹ Arrêt demandé', 'warning');
   
   chrome.runtime.sendMessage({ type: 'stopAutomation' });
@@ -141,7 +178,11 @@ function updateStats(newStats) {
   if (stats.total > 0) {
     const progress = (stats.processed / stats.total) * 100;
     document.getElementById('progressFill').style.width = progress + '%';
-    document.getElementById('progressText').textContent = Math.round(progress) + '%';
+ **
+ * Ajoute une entrée au journal de logs de la popup
+ * @param {string} text - Message à afficher
+ * @param {string} level - Niveau: 'info', 'success', 'warning', 'error'
+ */gressText').textContent = Math.round(progress) + '%';
   }
   
   saveStats();
@@ -155,7 +196,11 @@ function addLog(text, level = 'info') {
   
   logContainer.appendChild(entry);
   logContainer.scrollTop = logContainer.scrollHeight;
-  
+ **
+ * Met à jour le message de statut de la popup
+ * @param {string} text - Texte à afficher
+ * @param {boolean} running - Si l'automatisation est en cours
+ */
   // Limiter à 100 entrées
   while (logContainer.children.length > 100) {
     logContainer.removeChild(logContainer.firstChild);
@@ -164,10 +209,14 @@ function addLog(text, level = 'info') {
 
 // Mettre à jour le statut
 function updateStatus(text, running) {
-  statusMessage.textContent = text;
+ **
+ * Sauvegarde les statistiques dans le stockage local
+ */ent = text;
   if (running) {
     statusMessage.classList.add('running');
-  } else {
+ **
+ * Charge les statistiques depuis le stockage local au démarrage
+ */
     statusMessage.classList.remove('running');
   }
 }

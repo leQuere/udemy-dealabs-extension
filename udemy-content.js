@@ -1,6 +1,20 @@
-// Content script pour les pages Udemy
+/**
+ * Content Script Udemy - Extension Udemy Auto Dealabs
+ * 
+ * Ce script s'exécute sur toutes les pages Udemy et permet:
+ * - De vérifier si un cours est gratuit
+ * - De détecter si l'utilisateur est déjà inscrit
+ * - De s'inscrire automatiquement aux cours gratuits
+ * - De gérer le processus de checkout si nécessaire
+ */
 
-// Écouter les messages
+// === GESTIONNAIRE DE MESSAGES ===
+
+/**
+ * Écoute les messages du background script
+ * Messages supportés:
+ * - checkAndEnroll: Vérifier et s'inscrire au cours actuel
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'checkAndEnroll') {
     checkAndEnrollInCourse().then(result => {
@@ -10,7 +24,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// Vérifier et s'inscrire au cours
+// === FONCTION PRINCIPALE ===
+
+/**
+ * Fonction principale qui vérifie le statut d'un cours et tente l'inscription
+ * @returns {Object} Résultat: {status: 'enrolled'|'already_enrolled'|'paid'|'error', title: string}
+ */
 async function checkAndEnrollInCourse() {
   console.log('Vérification du cours Udemy...');
   
@@ -41,7 +60,12 @@ async function checkAndEnrollInCourse() {
   const enrolled = await enrollInCourse();
   
   return {
-    status: enrolled ? 'enrolled' : 'error',
+   === FONCTIONS UTILITAIRES ===
+
+/**
+ * Attend que la page Udemy soit complètement chargée et que les informations de prix soient disponibles
+ * @returns {Promise<void>}
+ */'error',
     title: courseTitle
   };
 }
@@ -115,7 +139,10 @@ function waitForPageLoad() {
       console.log('⚠️ Timeout: prix non détecté, on continue quand même...');
     }
     
-    console.log('✓ Chargement terminé');
+ **
+ * Extrait le titre du cours depuis la page Udemy
+ * @returns {string} Titre du cours ou 'Formation Udemy' par défaut
+ */t terminé');
     resolve();
   });
 }
@@ -139,7 +166,11 @@ function getCourseTitle() {
     }
   }
   
-  return 'Formation Udemy';
+ **
+ * Vérifie si l'utilisateur est déjà inscrit au cours
+ * Utilise plusieurs méthodes de détection pour plus de fiabilité
+ * @returns {boolean} true si déjà inscrit, false sinon
+ */
 }
 
 // Vérifier si déjà inscrit
@@ -192,7 +223,15 @@ function checkIfAlreadyEnrolled() {
     return true;
   }
   
-  console.log('❌ Pas encore inscrit');
+ **
+ * Vérifie si le cours est actuellement gratuit
+ * Utilise plusieurs méthodes pour détecter le prix:
+ * - Recherche de <span>Gratuit</span> ou <span>Free</span>
+ * - Analyse des éléments de prix dans la page
+ * - Vérification des boutons d'action
+ * - Analyse du HTML brut
+ * @returns {boolean} true si gratuit, false si payant ou indéterminé
+ */');
   return false;
 }
 
@@ -324,7 +363,10 @@ function checkIfFree() {
   if (foundPrice && foundPrice > 0) {
     console.log('❌ RÉSULTAT: PAYANT');
     return false;
-  }
+ **
+ * Trouve le bouton d'inscription sur la page Udemy
+ * @returns {HTMLElement|null} Le bouton trouvé ou null
+ */
   
   if (foundFree) {
     console.log('✅ RÉSULTAT: GRATUIT');
@@ -358,7 +400,11 @@ function findEnrollButton() {
   
   // Chercher par texte
   const allButtons = document.querySelectorAll('button, a');
-  for (const button of allButtons) {
+ **
+ * Tente de s'inscrire au cours en cliquant sur le bouton d'inscription
+ * Gère également le processus de checkout si nécessaire
+ * @returns {boolean} true si l'inscription semble réussie, false sinon
+ */ allButtons) {
     const text = button.textContent.toLowerCase();
     if ((text.includes('inscrire') || text.includes('enroll') || text.includes('ajouter au panier') || text.includes('add to cart')) &&
         button.offsetParent !== null) {
@@ -403,7 +449,10 @@ async function enrollInCourse() {
     }
     
     return true;
-    
+ **
+ * Trouve le bouton de validation de commande sur la page de checkout
+ * @returns {HTMLElement|null} Le bouton trouvé ou null
+ */
   } catch (error) {
     console.error('Erreur lors de l\'inscription:', error);
     return false;
@@ -433,7 +482,11 @@ function findCheckoutButton() {
     const text = button.textContent.toLowerCase();
     if ((text.includes('passer') || text.includes('complete') || text.includes('checkout')) &&
         button.offsetParent !== null) {
-      return button;
+ **
+ * Fonction utilitaire pour créer un délai
+ * @param {number} ms - Nombre de millisecondes à attendre
+ * @returns {Promise<void>}
+ */
     }
   }
   

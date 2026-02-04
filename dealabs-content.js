@@ -1,8 +1,25 @@
-// Content script pour les pages Dealabs
+/**
+ * Content Script Dealabs - Extension Udemy Auto Dealabs
+ * 
+ * Ce script s'exécute sur toutes les pages Dealabs et permet:
+ * - D'extraire les liens de formations Udemy depuis les deals
+ * - D'afficher un panneau de suivi en temps réel sur la page
+ * - D'ajouter un bouton de démarrage rapide
+ * - De communiquer avec le background script
+ */
 
 console.log('Dealabs content script chargé');
 
-// Écouter les messages
+// === GESTIONNAIRE DE MESSAGES ===
+
+/**
+ * Écoute les messages du background script
+ * Messages supportés:
+ * - extractLinks: Lancer l'extraction des liens de cours
+ * - log: Ajouter une entrée au panneau de logs
+ * - updateStats: Mettre à jour les statistiques affichées
+ * - automationFinished: Notifier la fin de l'automatisation
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message reçu dans dealabs-content:', message);
   if (message.type === 'extractLinks') {
@@ -21,7 +38,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // Pas de return true car on ne répond pas de manière asynchrone
 });
 
-// Extraire tous les liens de formation
+// === EXTRACTION DES LIENS ===
+
+/**
+ * Extrait tous les liens de formations Udemy depuis la page Dealabs actuelle
+ * Utilise plusieurs méthodes pour trouver les liens cachés dans le HTML
+ */
 function extractCourseLinks() {
   console.log('Extraction des liens Dealabs...');
   console.log('URL actuelle:', window.location.href);
@@ -125,13 +147,20 @@ function extractCourseLinks() {
       setTimeout(tryExtract, 500);
     }
   };
-  
-  // Commencer après 500ms
-  setTimeout(tryExtract, 500);
-}
+  === PANNEAU DE SUIVI ===
+
+/**
+ * Variables globales pour gérer le panneau de suivi
+ */
+let statsPanel = null;      // Élément DOM du panneau
+let logContainer = null;    // Conteneur des logs
+let statsElements = {};     // Références aux éléments de statistiques
 
 // Variables globales pour le panneau
-let statsPanel = null;
+l**
+ * Crée le panneau de suivi visuel qui s'affiche sur la page Dealabs
+ * Affiche les statistiques en temps réel et les logs de progression
+ */
 let logContainer = null;
 let statsElements = {};
 
@@ -212,7 +241,9 @@ function createStatsPanel() {
   // Bouton fermer
   document.getElementById('udemy-panel-close').addEventListener('click', () => {
     panel.style.display = 'none';
-  });
+ **
+ * Affiche le panneau de suivi et réinitialise les statistiques
+ */
 }
 
 // Afficher le panneau
@@ -230,7 +261,11 @@ function showStatsPanel() {
     statsElements.paid.textContent = '0';
     statsElements.errors.textContent = '0';
   }
-  if (logContainer) {
+ **
+ * Ajoute une nouvelle entrée de log dans le panneau
+ * @param {string} text - Message à afficher
+ * @param {string} level - Niveau: 'success', 'error', 'warning', 'info'
+ */
     logContainer.innerHTML = '';
   }
 }
@@ -261,7 +296,10 @@ function addLogToPanel(text, level) {
 
   logContainer.insertBefore(logEntry, logContainer.firstChild);
 
-  // Limiter à 50 logs
+ **
+ * Met à jour les statistiques affichées dans le panneau
+ * @param {Object} stats - Objet contenant les statistiques à jour
+ */
   while (logContainer.children.length > 50) {
     logContainer.removeChild(logContainer.lastChild);
   }
@@ -272,7 +310,10 @@ function updatePanelStats(stats) {
   if (!statsElements.total) return;
 
   if (stats.total !== undefined) statsElements.total.textContent = stats.total;
-  if (stats.processed !== undefined) statsElements.processed.textContent = stats.processed;
+ **
+ * Ajoute un bouton flottant "Lancer Udemy Auto" sur les pages de deals Dealabs
+ * Ce bouton permet de démarrer l'automatisation directement depuis la page
+ */tsElements.processed.textContent = stats.processed;
   if (stats.achetees !== undefined) statsElements.enrolled.textContent = stats.achetees;
   if (stats.deja !== undefined) statsElements.already.textContent = stats.deja;
   if (stats.payantes !== undefined) statsElements.paid.textContent = stats.payantes;
@@ -356,7 +397,10 @@ function addQuickStartButton() {
       setTimeout(() => {
         button.innerHTML = '🎓 Lancer Udemy Auto';
         button.disabled = false;
-      }, 2000);
+ **
+ * Appelée quand l'automatisation est terminée
+ * Met à jour l'interface pour indiquer la fin du processus
+ */
     }
   });
   
