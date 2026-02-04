@@ -60,17 +60,13 @@ async function checkAndEnrollInCourse() {
   const enrolled = await enrollInCourse();
   
   return {
-   === FONCTIONS UTILITAIRES ===
-
-/**
- * Attend que la page Udemy soit complètement chargée et que les informations de prix soient disponibles
- * @returns {Promise<void>}
- */'error',
+    status: enrolled ? 'enrolled' : 'error',
     title: courseTitle
   };
 }
 
-// Attendre que la page soit chargée
+// === FONCTIONS UTILITAIRES ===
+
 function waitForPageLoad() {
   return new Promise(async (resolve) => {
     console.log('⏳ Début du chargement de la page...');
@@ -139,15 +135,11 @@ function waitForPageLoad() {
       console.log('⚠️ Timeout: prix non détecté, on continue quand même...');
     }
     
- **
- * Extrait le titre du cours depuis la page Udemy
- * @returns {string} Titre du cours ou 'Formation Udemy' par défaut
- */t terminé');
+    console.log('✅ Chargement terminé');
     resolve();
   });
 }
 
-// Obtenir le titre du cours
 function getCourseTitle() {
   const selectors = [
     'h1[data-purpose="lead-title"]',
@@ -166,14 +158,9 @@ function getCourseTitle() {
     }
   }
   
- **
- * Vérifie si l'utilisateur est déjà inscrit au cours
- * Utilise plusieurs méthodes de détection pour plus de fiabilité
- * @returns {boolean} true si déjà inscrit, false sinon
- */
+  return 'Formation Udemy';
 }
 
-// Vérifier si déjà inscrit
 function checkIfAlreadyEnrolled() {
   console.log('🔍 === VÉRIFICATION DÉJÀ INSCRIT ===');
   
@@ -223,19 +210,10 @@ function checkIfAlreadyEnrolled() {
     return true;
   }
   
- **
- * Vérifie si le cours est actuellement gratuit
- * Utilise plusieurs méthodes pour détecter le prix:
- * - Recherche de <span>Gratuit</span> ou <span>Free</span>
- * - Analyse des éléments de prix dans la page
- * - Vérification des boutons d'action
- * - Analyse du HTML brut
- * @returns {boolean} true si gratuit, false si payant ou indéterminé
- */');
+  console.log('❌ PAS inscrit');
   return false;
 }
 
-// Vérifier si le cours est gratuit
 function checkIfFree() {
   console.log('🔍 === DÉBUT VÉRIFICATION PRIX ===');
   console.log('URL:', window.location.href);
@@ -363,10 +341,7 @@ function checkIfFree() {
   if (foundPrice && foundPrice > 0) {
     console.log('❌ RÉSULTAT: PAYANT');
     return false;
- **
- * Trouve le bouton d'inscription sur la page Udemy
- * @returns {HTMLElement|null} Le bouton trouvé ou null
- */
+  }
   
   if (foundFree) {
     console.log('✅ RÉSULTAT: GRATUIT');
@@ -378,7 +353,6 @@ function checkIfFree() {
   return false;
 }
 
-// Trouver le bouton d'inscription
 function findEnrollButton() {
   const buttonSelectors = [
     'button[data-purpose*="buy-this-course-button"]',
@@ -400,11 +374,7 @@ function findEnrollButton() {
   
   // Chercher par texte
   const allButtons = document.querySelectorAll('button, a');
- **
- * Tente de s'inscrire au cours en cliquant sur le bouton d'inscription
- * Gère également le processus de checkout si nécessaire
- * @returns {boolean} true si l'inscription semble réussie, false sinon
- */ allButtons) {
+  for (const button of allButtons) {
     const text = button.textContent.toLowerCase();
     if ((text.includes('inscrire') || text.includes('enroll') || text.includes('ajouter au panier') || text.includes('add to cart')) &&
         button.offsetParent !== null) {
@@ -449,17 +419,12 @@ async function enrollInCourse() {
     }
     
     return true;
- **
- * Trouve le bouton de validation de commande sur la page de checkout
- * @returns {HTMLElement|null} Le bouton trouvé ou null
- */
   } catch (error) {
     console.error('Erreur lors de l\'inscription:', error);
     return false;
   }
 }
 
-// Trouver le bouton de checkout
 function findCheckoutButton() {
   const selectors = [
     'button[data-purpose="checkout-button"]',
@@ -482,20 +447,18 @@ function findCheckoutButton() {
     const text = button.textContent.toLowerCase();
     if ((text.includes('passer') || text.includes('complete') || text.includes('checkout')) &&
         button.offsetParent !== null) {
- **
- * Fonction utilitaire pour créer un délai
- * @param {number} ms - Nombre de millisecondes à attendre
- * @returns {Promise<void>}
- */
+      return button;
     }
   }
   
   return null;
 }
 
-// Fonction utilitaire sleep
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+/*function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}*/
 
 console.log('Udemy content script chargé');

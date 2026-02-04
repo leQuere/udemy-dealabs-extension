@@ -147,7 +147,11 @@ function extractCourseLinks() {
       setTimeout(tryExtract, 500);
     }
   };
-  === PANNEAU DE SUIVI ===
+  
+  tryExtract();
+}
+
+//  === PANNEAU DE SUIVI ===
 
 /**
  * Variables globales pour gérer le panneau de suivi
@@ -156,15 +160,10 @@ let statsPanel = null;      // Élément DOM du panneau
 let logContainer = null;    // Conteneur des logs
 let statsElements = {};     // Références aux éléments de statistiques
 
-// Variables globales pour le panneau
-l**
+/**
  * Crée le panneau de suivi visuel qui s'affiche sur la page Dealabs
  * Affiche les statistiques en temps réel et les logs de progression
  */
-let logContainer = null;
-let statsElements = {};
-
-// Créer le panneau de suivi
 function createStatsPanel() {
   if (document.getElementById('udemy-auto-panel')) {
     return;
@@ -241,12 +240,9 @@ function createStatsPanel() {
   // Bouton fermer
   document.getElementById('udemy-panel-close').addEventListener('click', () => {
     panel.style.display = 'none';
- **
- * Affiche le panneau de suivi et réinitialise les statistiques
- */
+  });
 }
 
-// Afficher le panneau
 function showStatsPanel() {
   if (!statsPanel) {
     createStatsPanel();
@@ -261,16 +257,11 @@ function showStatsPanel() {
     statsElements.paid.textContent = '0';
     statsElements.errors.textContent = '0';
   }
- **
- * Ajoute une nouvelle entrée de log dans le panneau
- * @param {string} text - Message à afficher
- * @param {string} level - Niveau: 'success', 'error', 'warning', 'info'
- */
+  if (logContainer) {
     logContainer.innerHTML = '';
   }
 }
 
-// Ajouter un log au panneau
 function addLogToPanel(text, level) {
   if (!logContainer) return;
 
@@ -296,24 +287,16 @@ function addLogToPanel(text, level) {
 
   logContainer.insertBefore(logEntry, logContainer.firstChild);
 
- **
- * Met à jour les statistiques affichées dans le panneau
- * @param {Object} stats - Objet contenant les statistiques à jour
- */
   while (logContainer.children.length > 50) {
     logContainer.removeChild(logContainer.lastChild);
   }
 }
 
-// Mettre à jour les stats du panneau
 function updatePanelStats(stats) {
   if (!statsElements.total) return;
 
   if (stats.total !== undefined) statsElements.total.textContent = stats.total;
- **
- * Ajoute un bouton flottant "Lancer Udemy Auto" sur les pages de deals Dealabs
- * Ce bouton permet de démarrer l'automatisation directement depuis la page
- */tsElements.processed.textContent = stats.processed;
+  if (stats.processed !== undefined) statsElements.processed.textContent = stats.processed;
   if (stats.achetees !== undefined) statsElements.enrolled.textContent = stats.achetees;
   if (stats.deja !== undefined) statsElements.already.textContent = stats.deja;
   if (stats.payantes !== undefined) statsElements.paid.textContent = stats.payantes;
@@ -322,15 +305,23 @@ function updatePanelStats(stats) {
 
 // Ajouter un bouton sur la page Dealabs
 function addQuickStartButton() {
+  console.log('Tentative d\'ajout du bouton...');
+  console.log('URL:', window.location.href);
+  console.log('Pathname:', window.location.pathname);
+  
   // Vérifier si on est sur une page de deal
   if (!window.location.pathname.includes('/bons-plans/')) {
+    console.log('❌ Pas sur une page /bons-plans/, bouton non ajouté');
     return;
   }
   
   // Vérifier si le bouton n'existe pas déjà
   if (document.getElementById('udemy-auto-button')) {
+    console.log('✓ Bouton déjà présent');
     return;
   }
+  
+  console.log('✓ Création du bouton...');
   
   const button = document.createElement('button');
   button.id = 'udemy-auto-button';
@@ -350,6 +341,7 @@ function addQuickStartButton() {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
     z-index: 10000;
     transition: all 0.3s;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   `;
   
   button.addEventListener('mouseenter', () => {
@@ -397,14 +389,12 @@ function addQuickStartButton() {
       setTimeout(() => {
         button.innerHTML = '🎓 Lancer Udemy Auto';
         button.disabled = false;
- **
- * Appelée quand l'automatisation est terminée
- * Met à jour l'interface pour indiquer la fin du processus
- */
+      }, 3000);
     }
   });
   
   document.body.appendChild(button);
+  console.log('✅ Bouton ajouté au DOM');
   
   // Créer le panneau (caché au départ)
   createStatsPanel();
@@ -426,9 +416,32 @@ function onAutomationFinished() {
   addLogToPanel('🎉 Automatisation terminée !', 'success');
 }
 
-// Initialiser
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', addQuickStartButton);
-} else {
+// === INITIALISATION ===
+
+// Attendre que le DOM soit chargé et réessayer plusieurs fois
+function initButton() {
+  console.log('Initialisation du bouton...');
+  
+  if (!document.body) {
+    console.log('Body pas encore prêt, attente...');
+    setTimeout(initButton, 100);
+    return;
+  }
+  
   addQuickStartButton();
+  
+  // Vérifier toutes les 2 secondes si le bouton existe toujours (au cas où il est supprimé)
+  setInterval(() => {
+    if (window.location.pathname.includes('/bons-plans/') && !document.getElementById('udemy-auto-button')) {
+      console.log('Bouton manquant, re-création...');
+      addQuickStartButton();
+    }
+  }, 2000);
+}
+
+// Démarrer l'initialisation
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initButton);
+} else {
+  initButton();
 }

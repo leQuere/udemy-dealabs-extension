@@ -75,15 +75,11 @@ async function checkCurrentPage() {
   } else {
     statusMessage.textContent = '⚠️ Ouvrez une page Dealabs pour commencer';
     statusMessage.style.background = '#fef5e7';
- **
- * Démarre l'automatisation depuis la popup
- * Envoie un message au background script avec les options choisies
- */r = '#744210';
+    statusMessage.style.color = '#744210';
     startBtn.disabled = true;
   }
 }
 
-// Démarrer l'automatisation
 async function startAutomation() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   
@@ -123,13 +119,9 @@ async function startAutomation() {
     } else {
       console.log('Message envoyé avec succès, réponse:', response);
     }
- **
- * Arrête l'automatisation en cours
- * Remet l'interface à son état initial
- */
+  });
 }
 
-// Arrêter l'automatisation
 function stopAutomation() {
   isRunning = false;
   startBtn.style.display = 'block';
@@ -137,16 +129,12 @@ function stopAutomation() {
   
   statusMessage.textContent = '⏹ Automatisation arrêtée';
   statusMessage.classList.remove('running');
- **
- * Met à jour l'affichage des statistiques dans la popup
- * @param {Object} newStats - Nouvelles valeurs de statistiques
- */
+  
   addLog('⏹ Arrêt demandé', 'warning');
   
   chrome.runtime.sendMessage({ type: 'stopAutomation' });
 }
 
-// Mettre à jour les statistiques
 function updateStats(newStats) {
   // Additionner les nouvelles valeurs aux stats existantes (sauf pour 'total' et 'processed' qui sont absolus)
   if (newStats.total !== undefined) {
@@ -178,17 +166,12 @@ function updateStats(newStats) {
   if (stats.total > 0) {
     const progress = (stats.processed / stats.total) * 100;
     document.getElementById('progressFill').style.width = progress + '%';
- **
- * Ajoute une entrée au journal de logs de la popup
- * @param {string} text - Message à afficher
- * @param {string} level - Niveau: 'info', 'success', 'warning', 'error'
- */gressText').textContent = Math.round(progress) + '%';
+    document.getElementById('progressText').textContent = Math.round(progress) + '%';
   }
   
   saveStats();
 }
 
-// Ajouter une entrée au journal
 function addLog(text, level = 'info') {
   const entry = document.createElement('div');
   entry.className = `log-entry ${level}`;
@@ -196,37 +179,26 @@ function addLog(text, level = 'info') {
   
   logContainer.appendChild(entry);
   logContainer.scrollTop = logContainer.scrollHeight;
- **
- * Met à jour le message de statut de la popup
- * @param {string} text - Texte à afficher
- * @param {boolean} running - Si l'automatisation est en cours
- */
+  
   // Limiter à 100 entrées
   while (logContainer.children.length > 100) {
     logContainer.removeChild(logContainer.firstChild);
   }
 }
 
-// Mettre à jour le statut
 function updateStatus(text, running) {
- **
- * Sauvegarde les statistiques dans le stockage local
- */ent = text;
+  statusMessage.textContent = text;
   if (running) {
     statusMessage.classList.add('running');
- **
- * Charge les statistiques depuis le stockage local au démarrage
- */
+  } else {
     statusMessage.classList.remove('running');
   }
 }
 
-// Sauvegarder les stats
 function saveStats() {
   chrome.storage.local.set({ stats });
 }
 
-// Charger les stats
 function loadStats() {
   chrome.storage.local.get(['stats'], (result) => {
     if (result.stats) {

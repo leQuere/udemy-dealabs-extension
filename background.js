@@ -158,16 +158,16 @@ async function startAutomation(tabId, opts) {
         stopAutomation();
       }
     }
- **
- * Arrête l'automatisation et réinitialise toutes les variables
- */
+  } catch (error) {
     console.error('Erreur lors de l\'extraction des liens:', error);
     sendLog('❌ Erreur: ' + error.message, 'error');
     stopAutomation();
   }
 }
 
-// Arrêter l'automatisation
+/**
+ * Arrête l'automatisation et réinitialise toutes les variables
+ */
 function stopAutomation() {
   isRunning = false;
   currentTabId = null;
@@ -175,13 +175,13 @@ function stopAutomation() {
   currentIndex = 0;
   
   sendStatus('⏹ Automatisation arrêtée', false);
-}**
+}
+
+/**
  * Traite les liens de cours extraits depuis Dealabs
  * @param {string[]} links - Tableau des URLs de cours
  * @param {number} tabId - ID de l'onglet source
  */
-
-// Gérer les liens trouvés
 async function handleLinksFound(links, tabId) {
   if (!isRunning) return;
   
@@ -198,14 +198,14 @@ async function handleLinksFound(links, tabId) {
   }
   
   // Commencer le traitement
- **
- * Traite le cours suivant dans la liste
- * Ouvre un nouvel onglet, attend la redirection vers Udemy, puis traite le cours
- */itement des cours...');
+  sendLog('🚀 Début du traitement des cours...', 'info');
   processNextCourse();
 }
 
-// Traiter le cours suivant
+/**
+ * Traite le cours suivant dans la liste
+ * Ouvre un nouvel onglet, attend la redirection vers Udemy, puis traite le cours
+ */
 async function processNextCourse() {
   if (!isRunning || currentIndex >= courseLinks.length) {
     if (currentIndex >= courseLinks.length) {
@@ -239,18 +239,18 @@ async function processNextCourse() {
   } catch (error) {
     sendLog(`❌ Erreur: ${error.message}`, 'error');
     currentIndex++;
- **
- * Attend que l'onglet soit redirigé vers une page Udemy de cours
- * @param {number} tabId - ID de l'onglet à surveiller
- * @returns {Promise<void>} Résout quand la redirection est détectée
- */ex, erreurs: 1 });
+    sendStats({ processed: currentIndex, erreurs: 1 });
     
     // Toujours attendre 2 secondes entre chaque cours pour éviter les erreurs Chrome
     setTimeout(processNextCourse, 2000);
   }
 }
 
-// Attendre la redirection vers Udemy
+/**
+ * Attend que l'onglet soit redirigé vers une page Udemy de cours
+ * @param {number} tabId - ID de l'onglet à surveiller
+ * @returns {Promise<void>} Résout quand la redirection est détectée
+ */
 async function waitForUdemyRedirection(tabId) {
   return new Promise((resolve, reject) => {
     let attempts = 0;
@@ -276,17 +276,17 @@ async function waitForUdemyRedirection(tabId) {
           reject(new Error('Timeout: pas de redirection vers Udemy'));
         }
       } catch (error) {
- **
- * Envoie une demande au content script Udemy pour vérifier et s'inscrire au cours
- * @param {number} tabId - ID de l'onglet contenant la page Udemy
- */ckInterval);
+        clearInterval(checkInterval);
         reject(error);
       }
     }, 500);
   });
 }
 
-// Traiter un cours Udemy
+/**
+ * Envoie une demande au content script Udemy pour vérifier et s'inscrire au cours
+ * @param {number} tabId - ID de l'onglet contenant la page Udemy
+ */
 async function processUdemyCourse(tabId) {
   try {
     // Récupérer l'URL de l'onglet
@@ -339,10 +339,7 @@ async function processUdemyCourse(tabId) {
     
     try {
       await chrome.tabs.remove(tabId);
- **
- * Traite le résultat du traitement d'un cours et met à jour les statistiques
- * @param {Object} result - Résultat du traitement (status, title, url)
- */
+    } catch (e) {}
     
     currentIndex++;
     sendStats({ processed: currentIndex, erreurs: 1 });
@@ -352,7 +349,10 @@ async function processUdemyCourse(tabId) {
   }
 }
 
-// Gérer le résultat du traitement d'un cours
+/**
+ * Traite le résultat du traitement d'un cours et met à jour les statistiques
+ * @param {Object} result - Résultat du traitement (status, title, url)
+ */
 function handleCourseProcessed(result) {
   const statsUpdate = { processed: currentIndex + 1 };
   
@@ -376,10 +376,7 @@ function handleCourseProcessed(result) {
     sendLog(`⊙ ${result.title} - Déjà inscrit${urlInfo}`, 'info');
     statsUpdate.deja = 1;
   } else if (result.status === 'paid') {
- **
- * Met à jour et envoie les statistiques à tous les écouteurs
- * @param {Object} updates - Mises à jour partielles des statistiques
- */- Payant (ignoré)${urlInfo}`, 'warning');
+    sendLog(`€ ${result.title} - Payant (ignoré)${urlInfo}`, 'warning');
     statsUpdate.payantes = 1;
   } else {
     sendLog(`? ${result.title} - Statut inconnu${urlInfo}`, 'warning');
@@ -389,7 +386,10 @@ function handleCourseProcessed(result) {
   sendStats(statsUpdate);
 }
 
-// Envoyer les stats à la popup
+/**
+ * Met à jour et envoie les statistiques à tous les écouteurs
+ * @param {Object} updates - Mises à jour partielles des statistiques
+ */
 function sendStats(updates) {
   // Mettre à jour les stats locales
   if (updates.total !== undefined) {
@@ -424,11 +424,7 @@ function sendStats(updates) {
   
   // Envoyer aussi au content script Dealabs si disponible
   if (currentTabId) {
- **
- * Envoie un message de log à la popup et au panneau Dealabs
- * @param {string} text - Message à afficher
- * @param {string} level - Niveau: 'info', 'success', 'warning', 'error'
- */currentTabId, {
+    chrome.tabs.sendMessage(currentTabId, {
       type: 'updateStats',
       stats: stats
     }).catch(err => {
@@ -447,11 +443,7 @@ function sendLog(text, level) {
   }).catch(err => {
     console.log('Popup fermée, impossible d\'envoyer le log');
   });
- **
- * Envoie le statut de l'automatisation à la popup
- * @param {string} text - Texte de statut
- * @param {boolean} running - Indique si l'automatisation est en cours
- */
+  
   // Envoyer aussi au content script Dealabs si disponible
   if (currentTabId) {
     chrome.tabs.sendMessage(currentTabId, {
